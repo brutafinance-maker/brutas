@@ -1,0 +1,97 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: products
+    // Fields:
+    //   - name: string (required)
+    //   - price: number (required)
+    //   - description: string (required)
+    //   - images: list of strings (required)
+    //   - category: string (required)
+    //   - sizes: list of strings (required)
+    //   - stock: number (required)
+    //   - featured: bool (optional)
+    //   - createdAt: timestamp (required)
+    //
+    // Collection: orders
+    // Fields:
+    //   - customer: map (required) { name, phone, course }
+    //   - items: list of maps (required) { productId, name, price, quantity, size }
+    //   - total: number (required)
+    //   - status: string (required) ['pending', 'paid', 'shipped', 'delivered', 'cancelled']
+    //   - paymentMethod: string (required) ['pix']
+    //   - createdAt: timestamp (required)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         (request.auth.token.email == "matheusenge2@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function isValidProduct(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() < 200 &&
+             data.price is number && data.price >= 0 &&
+             data.description is string && data.description.size() < 2000 &&
+             data.images is list && data.images.size() > 0 && data.images.size() <= 10 &&
+             data.category is string && data.category.size() > 0 &&
+             data.sizes is list && data.sizes.size() > 0 &&
+             data.stock is number && data.stock >= 0 &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidOrder(data) {
+      return data.customer is map && 
+             data.customer.name is string && data.customer.name.size() > 0 &&
+             data.customer.phone is string && data.customer.phone.size() > 0 &&
+             data.items is list && data.items.size() > 0 &&
+             data.total is number && data.total >= 0 &&
+             data.status in ['pending', 'paid', 'shipped', 'delivered', 'cancelled'] &&
+             data.paymentMethod == 'pix' &&
+             data.createdAt is timestamp;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /products/{productId} {
+      allow read: if true; // Products are public
+      allow create, update, delete: if isAdmin() && isValidProduct(request.resource.data);
+    }
+
+    match /orders/{orderId} {
+      allow read: if isAdmin(); // Only admins can list all orders
+      allow create: if isValidOrder(request.resource.data); // Anyone can create an order (checkout)
+      allow update: if isAdmin() && isValidOrder(request.resource.data);
+    }
+
+    match /users/{userId} {
+      allow read, write: if request.auth.uid == userId || isAdmin();
+    }
+
+    match /test/connection {
+      allow read: if true;
+    }
+  }
+}

@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brutamed-primary: #1F8A5B;
+  --color-brutamed-dark: #0F4D32;
+  --color-brutamed-bg: #FFFFFF;
+  --color-brutamed-text: #000000;
+  --color-brutamed-muted: #666666;
+  --color-brutamed-card: #FFFFFF;
+  
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --radius-xl: 0.5rem;
+  --radius-2xl: 0.75rem;
+  --radius-3xl: 1rem;
+}
+
+@layer base {
+  body {
+    @apply bg-white text-brutamed-text font-sans antialiased selection:bg-brutamed-primary selection:text-white;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-black tracking-tighter uppercase;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-brutamed-text text-white px-10 py-5 rounded-none font-black transition-all hover:bg-brutamed-primary active:scale-95 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-[0.2em] text-[10px];
+  }
+  
+  .btn-outline {
+    @apply border-2 border-brutamed-text text-brutamed-text px-10 py-5 rounded-none font-black transition-all hover:bg-brutamed-text hover:text-white active:scale-95 uppercase tracking-[0.2em] text-[10px];
+  }
+
+  .card-premium {
+    @apply bg-white rounded-none overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-black/10;
+  }
+
+  .section-container {
+    @apply max-w-7xl mx-auto px-6 md:px-12 py-20;
+  }
+}
+
+@keyframes fade-in-up {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out forwards;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  @apply bg-gray-200 rounded-full hover:bg-gray-300;
+}
